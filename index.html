@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Traduction - Anglais</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        /* Styles Diff Light Mode */
+        .diff-added { background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 0 2px; border-radius: 2px; }
+        .diff-removed { background-color: #fee2e2; color: #991b1b; text-decoration: line-through; opacity: 0.7; padding: 0 2px; }
+
+        /* Styles Diff Dark Mode */
+        .dark .diff-added { background-color: #064e3b; color: #6ee7b7; }
+        .dark .diff-removed { background-color: #7f1d1d; color: #fca5a5; }
+    </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+    const sentences = [
+        {
+            id: 1,
+            fr: "Le droit des peuples à l’autodétermination a été établi par le Traité de Versailles, au lendemain de la première guerre mondiale.",
+            en: "The right of peoples to self-determination was established by the Treaty of Versailles, in the wake of the First World War."
+        },
+        {
+            id: 2,
+            fr: "De grands pays émergents comme l’Inde ou le Brésil estiment avoir droit à un siège permanent au Conseil de Sécurité de l’ONU.",
+            en: "Major emerging countries such as India or Brazil consider they are entitled to a permanent seat on the UN Security Council."
+        },
+        {
+            id: 3,
+            fr: "Les pays occidentaux peuvent-ils faire respecter les droits de l’homme dans des pays autoritaires comme le Myanmar ?",
+            en: "Can Western countries uphold human rights in authoritarian countries like Myanmar?"
+        },
+        {
+            id: 4,
+            fr: "La Grande Bretagne a adhéré à la CEE en 1973 et est devenue membre de l’Union européenne en 1993.",
+            en: "Great Britain joined the EEC in 1973 and became a member of the European Union in 1993."
+        },
+        {
+            id: 5,
+            fr: "Il se pourrait que les négociations se retrouvent dans une impasse ou même échouent complètement.",
+            en: "The talks might reach a deadlock or even break down completely."
+        },
+        {
+            id: 6,
+            fr: "La théorie de Huntington dans « Le choc des civilisations » est contestable parce qu’elle ne tient pas compte du transfert de valeurs opéré par la mondialisation.",
+            en: "Huntington’s theory in “The Clash of Civilizations” is questionable because it does not take account of the transfer of values brought about by globalization."
+        },
+        {
+            id: 7,
+            fr: "« Diviser pour régner » a longtemps été la politique du Royaume-Uni, qui est encore parfois surnommé « la perfide Albion ».",
+            en: "“Divide and rule” was long the policy of the United Kingdom, which is still sometimes nicknamed “perfidious Albion”."
+        },
+        {
+            id: 8,
+            fr: "Les opérations de maintien de la paix sont indispensables mais particulièrement coûteuses.",
+            en: "Peace-keeping operations are indispensable but particularly costly."
+        },
+        {
+            id: 9,
+            fr: "La politique étrangère unilatérale de Donald Trump s’est traduite par l’aggravation de l’anti-américanisme dans une grande partie du Moyen-Orient.",
+            en: "Donald Trump’s unilateral foreign policy has resulted in a worsening of anti-Americanism in much of the Middle East."
+        },
+        {
+            id: 10,
+            fr: "On peut se poser la question de savoir si l’opinion publique internationale joue vraiment un rôle significatif sur la scène internationale.",
+            en: "It may be wondered whether international public opinion really plays a significant part on the international stage."
+        }
+    ];
+
+    function QuizApp() {
+        const [darkMode, setDarkMode] = React.useState(false);
+
+        // Effet pour appliquer la classe 'dark' au body/html
+        React.useEffect(() => {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }, [darkMode]);
+
+        return (
+            <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+                <div className="max-w-4xl mx-auto p-6">
+                    <header className="mb-8 flex items-center justify-between relative">
+                        <div className="text-center w-full">
+                            <h1 className={`text-3xl font-bold mb-2 transition-colors ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                Quiz de Traduction
+                            </h1>
+                            <p className={`transition-colors ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Entraînement Anglais - Thème & Version
+                            </p>
+                        </div>
+                        
+                        <button 
+                            onClick={() => setDarkMode(!darkMode)}
+                            className={`absolute right-0 top-0 p-2 rounded-full transition-colors ${darkMode ? 'bg-gray-800 text-yellow-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-200'} shadow-sm`}
+                            title={darkMode ? "Passer en mode clair" : "Passer en mode sombre"}
+                        >
+                            {darkMode ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                            )}
+                        </button>
+                    </header>
+
+                    <div className="space-y-6">
+                        {sentences.map((sentence, index) => (
+                            <QuizCard key={sentence.id} sentence={sentence} index={index} darkMode={darkMode} />
+                        ))}
+                    </div>
+                    
+                    <footer className={`mt-12 text-center text-sm transition-colors ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+                        © Habib Dan 2026
+                    </footer>
+                </div>
+            </div>
+        );
+    }
+
+    function QuizCard({ sentence, index, darkMode }) {
+        const [showAnswer, setShowAnswer] = React.useState(false);
+        const [userInput, setUserInput] = React.useState("");
+
+        const handleCheck = () => {
+            setShowAnswer(!showAnswer);
+        };
+
+        const renderDiff = () => {
+            if (!userInput) return <p className={`text-lg mt-1 font-serif ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>{sentence.en}</p>;
+
+            const diff = Diff.diffWords(userInput.trim(), sentence.en.trim());
+
+            return (
+                <div className="text-lg mt-1 font-serif leading-relaxed">
+                    {diff.map((part, i) => {
+                        if (part.added) {
+                            return <span key={i} className="diff-added" title="Manquant ou incorrect">{part.value}</span>;
+                        } else if (part.removed) {
+                            return <span key={i} className="diff-removed" title="Erreur">{part.value}</span>;
+                        } else {
+                            return <span key={i} className={`transition-colors ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{part.value}</span>;
+                        }
+                    })}
+                </div>
+            );
+        };
+
+        return (
+            <div className={`card rounded-xl shadow-md overflow-hidden border transition-colors duration-300 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded transition-colors ${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>Phrase {index + 1}</span>
+                    </div>
+                    
+                    <h3 className={`text-lg font-medium mb-4 transition-colors ${darkMode ? 'text-white' : 'text-gray-900'}`}>{sentence.fr}</h3>
+                    
+                    <textarea 
+                        className={`w-full p-3 border rounded-lg outline-none transition-colors mb-4 ${
+                            darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500' 
+                            : 'bg-gray-50 border-gray-300 text-gray-700 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500'
+                        }`}
+                        placeholder="Tape ta traduction ici..."
+                        rows="2"
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        disabled={showAnswer}
+                    ></textarea>
+
+                    <div className="flex items-center justify-between">
+                        <button 
+                            onClick={handleCheck}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                showAnswer 
+                                ? (darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300') 
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                        >
+                            {showAnswer ? 'Réessayer / Cacher' : 'Vérifier ma réponse'}
+                        </button>
+                    </div>
+
+                    {showAnswer && (
+                        <div className={`mt-4 p-4 rounded-r-lg border-l-4 animate-fade-in transition-colors ${darkMode ? 'bg-gray-900 border-blue-500' : 'bg-gray-50 border-blue-400'}`}>
+                            <p className={`font-medium text-sm mb-2 ${darkMode ? 'text-blue-300' : 'text-blue-800'}`}>Correction et Comparaison :</p>
+                            {renderDiff()}
+                            {userInput && (
+                                <p className={`mt-4 text-xs border-t pt-2 ${darkMode ? 'text-gray-500 border-gray-700' : 'text-gray-500 border-gray-200'}`}>
+                                    <span className={`inline-block w-3 h-3 line-through mr-1 ${darkMode ? 'bg-red-900' : 'bg-red-200'}`}></span> Votre erreur
+                                    <span className={`inline-block w-3 h-3 ml-3 mr-1 ${darkMode ? 'bg-green-900' : 'bg-green-200'}`}></span> La correction attendue
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<QuizApp />);
+
+</script>
+</body>
+</html>
